@@ -18,12 +18,17 @@ async function findRelevantMonth() {
   return closedRow || null;
 }
 
-function renderLeaderboardRows(ranked) {
+function renderLeaderboardRows(ranked, firstImageByEntry) {
   return ranked.map((row) => {
     const badgeClass = row.rank <= 3 ? `rank-badge rank-${row.rank}` : 'rank-badge';
+    const imagePath = firstImageByEntry.get(row.entry.id);
+    const image = imagePath
+      ? `<img src="${escapeHtml(getPhotoUrl(imagePath))}" alt="${escapeHtml(row.entry.model_name)}" class="live-rank-image">`
+      : '<div class="live-rank-image live-rank-image-placeholder"></div>';
     return `
       <div class="live-rank-row">
         <span class="${badgeClass}">${row.rank}</span>
+        ${image}
         <div class="live-rank-info">
           <div class="live-rank-name">${escapeHtml(row.entry.participant_name)} — ${escapeHtml(row.entry.model_name)}</div>
           <div class="muted">${Math.round(row.rating)} rating &middot; ${row.battleCount} battle${row.battleCount === 1 ? '' : 's'}</div>
@@ -65,6 +70,18 @@ async function renderLive() {
     ]);
     if (entriesError) throw entriesError;
 
+    const { data: images, error: imagesError } = await supabaseClient
+      .from('entry_images')
+      .select('entry_id, storage_path, position')
+      .in('entry_id', entries.map((e) => e.id))
+      .order('position');
+    if (imagesError) throw imagesError;
+
+    const firstImageByEntry = new Map();
+    for (const img of images) {
+      if (!firstImageByEntry.has(img.entry_id)) firstImageByEntry.set(img.entry_id, img.storage_path);
+    }
+
     const ranked = computeEloRankings(entries, votes, points);
     const totalBattles = battles.length;
     const battlesWithVotes = new Set(votes.map((v) => v.battle_id)).size;
@@ -103,7 +120,7 @@ async function renderLive() {
 
         <div class="card">
           <h3>Current Leaderboard</h3>
-          ${renderLeaderboardRows(ranked)}
+          ${renderLeaderboardRows(ranked, firstImageByEntry)}
         </div>
 
         <div class="card">
@@ -119,7 +136,7 @@ async function renderLive() {
 
         <div class="card">
           <h3>Full Standings</h3>
-          ${renderLeaderboardRows(ranked)}
+          ${renderLeaderboardRows(ranked, firstImageByEntry)}
         </div>
       `;
     }

@@ -428,6 +428,19 @@ tr:last-child td { border-bottom: none; }
 
 .live-rank-row:last-child { border-bottom: none; }
 
+.live-rank-image {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
+.live-rank-image-placeholder {
+  border: 1px dashed var(--border);
+}
+
 .live-rank-info { flex: 1; }
 
 .live-rank-name {
