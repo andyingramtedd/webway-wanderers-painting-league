@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Battle Vote — Webway Wanderers Painting League</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="submit.html">Submit Entry</a>
+      <a href="vote.html">Vote</a>
+      <a href="battle-vote.html" class="active">Battle Vote</a>
+      <a href="results.html">Results</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="live-results.html">Live Results</a>
+    </div>
+    <a href="admin.html" class="hamburger" aria-label="Admin login" title="Admin login">&#9776;</a>
+  </nav>
+  <main>
+    <div id="name-gate" class="card">
+      <h2>&#9876;&#65039; Battle Vote</h2>
+      <p class="muted">Head-to-head voting: tap whichever miniature you prefer, battle after battle.</p>
+      <label for="voter-name">Your name</label>
+      <input type="text" id="voter-name" autocomplete="name">
+      <button type="button" id="start-button" style="margin-top:20px;">Start voting</button>
+    </div>
+
+    <div id="battle-app" style="display:none;">
+      <div class="battle-header">
+        <h2 id="battle-title"></h2>
+        <p class="battle-theme" id="battle-theme"></p>
+        <p class="battle-progress" id="battle-progress"></p>
+        <div class="battle-progress-bar"><div id="battle-progress-fill" class="battle-progress-fill"></div></div>
+      </div>
+
+      <div id="status-message" class="status info" style="display:none;"></div>
+      <div id="battle-arena"></div>
+      <p class="muted" style="text-align:center;margin-top:16px;"><a href="#" id="change-name-link">Not you? Change name</a></p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="assets/supabase-client.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/battle-vote.js"></script>
+</body>
+</html>

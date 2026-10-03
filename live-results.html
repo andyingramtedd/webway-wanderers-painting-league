@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Leaderboard — Webway Wanderers Painting League</title>
+  <title>Live Results — Webway Wanderers Painting League</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -14,20 +14,20 @@
       <a href="vote.html">Vote</a>
       <a href="battle-vote.html">Battle Vote</a>
       <a href="results.html">Results</a>
-      <a href="leaderboard.html" class="active">Leaderboard</a>
-      <a href="live-results.html">Live Results</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="live-results.html" class="active">Live Results</a>
     </div>
     <a href="admin.html" class="hamburger" aria-label="Admin login" title="Admin login">&#9776;</a>
   </nav>
-  <main>
-    <h1>Yearly leaderboard</h1>
-    <p class="muted">Points across every month so far this year: 1st/2nd/3rd place bonuses, or participation points for everyone else who entered.</p>
-    <div id="leaderboard-container"></div>
+  <main class="live-main">
+    <div id="live-content">
+      <p class="muted">Loading live results…</p>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="assets/supabase-client.js"></script>
   <script src="assets/common.js"></script>
-  <script src="assets/leaderboard.js"></script>
+  <script src="assets/live-results.js"></script>
 </body>
 </html>

@@ -2,11 +2,13 @@ const monthSelect = document.getElementById('month');
 const resultsContainer = document.getElementById('results-container');
 const noMonthsMessage = document.getElementById('no-months-message');
 
-function renderResultCard(row) {
-  const { entry, avg, voteCount, rank, points } = row;
+function renderResultCard(row, method) {
+  const { entry, rank, points } = row;
   const badgeClass = rank && rank <= 3 ? `rank-badge rank-${rank}` : 'rank-badge';
   const badgeLabel = rank ? `#${rank}` : '—';
-  const avgLabel = avg === null ? 'No votes yet' : `${avg.toFixed(2)} avg (${voteCount} vote${voteCount === 1 ? '' : 's'})`;
+  const summaryLabel = method === 'battle'
+    ? `${Math.round(row.rating)} rating (${row.battleCount} battle${row.battleCount === 1 ? '' : 's'})`
+    : (row.avg === null ? 'No votes yet' : `${row.avg.toFixed(2)} avg (${row.voteCount} vote${row.voteCount === 1 ? '' : 's'})`);
 
   const galleryImgs = row.images.length
     ? row.images.map((img) => `<img src="${escapeHtml(getPhotoUrl(img.storage_path))}" alt="${escapeHtml(entry.model_name)}">`).join('')
@@ -24,7 +26,7 @@ function renderResultCard(row) {
       </div>
       <div class="gallery">${galleryImgs}</div>
       ${dots}
-      <p class="muted" style="margin-top:10px;">${avgLabel} &middot; ${points} point${points === 1 ? '' : 's'}</p>
+      <p class="muted" style="margin-top:10px;">${summaryLabel} &middot; ${points} point${points === 1 ? '' : 's'}</p>
     </div>
   `;
 }
@@ -78,12 +80,11 @@ async function loadResults(month) {
 
   const entryIds = entries.map((e) => e.id);
 
-  const [{ data: images, error: imagesError }, { data: scores, error: scoresError }] = await Promise.all([
+  const [{ data: images, error: imagesError }, { method, rows }] = await Promise.all([
     supabaseClient.from('entry_images').select('entry_id, storage_path, position').in('entry_id', entryIds).order('position'),
-    supabaseClient.from('ballot_scores').select('entry_id, score, ballots!inner(month)').eq('ballots.month', month),
+    rankEntriesForMonth(month, entries, points),
   ]);
   if (imagesError) throw imagesError;
-  if (scoresError) throw scoresError;
 
   const imagesByEntry = new Map();
   for (const img of images) {
@@ -91,18 +92,12 @@ async function loadResults(month) {
     imagesByEntry.get(img.entry_id).push(img);
   }
 
-  const scoresByEntry = new Map();
-  for (const row of scores) {
-    if (!scoresByEntry.has(row.entry_id)) scoresByEntry.set(row.entry_id, []);
-    scoresByEntry.get(row.entry_id).push(row.score);
-  }
-
-  const rankedRows = rankEntries(entries, scoresByEntry, points).map((row) => ({
+  const rankedRows = rows.map((row) => ({
     ...row,
     images: imagesByEntry.get(row.entry.id) || [],
   }));
 
-  resultsContainer.innerHTML = rankedRows.map(renderResultCard).join('');
+  resultsContainer.innerHTML = rankedRows.map((row) => renderResultCard(row, method)).join('');
   wireGalleryDots();
 }
 

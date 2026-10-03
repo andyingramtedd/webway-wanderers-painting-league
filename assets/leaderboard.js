@@ -7,23 +7,15 @@ function normalizeName(name) {
 async function loadLeaderboard() {
   container.innerHTML = '<p class="muted">Crunching the numbers…</p>';
 
-  const [{ data: entries, error: entriesError }, { data: scores, error: scoresError }, points] = await Promise.all([
+  const [{ data: entries, error: entriesError }, points] = await Promise.all([
     supabaseClient.from('entries').select('id, participant_name, month'),
-    supabaseClient.from('ballot_scores').select('entry_id, score, ballots!inner(month)'),
     fetchSettings(),
   ]);
   if (entriesError) throw entriesError;
-  if (scoresError) throw scoresError;
 
   if (entries.length === 0) {
     container.innerHTML = '<p class="muted">No entries yet.</p>';
     return;
-  }
-
-  const scoresByEntry = new Map();
-  for (const row of scores) {
-    if (!scoresByEntry.has(row.entry_id)) scoresByEntry.set(row.entry_id, []);
-    scoresByEntry.get(row.entry_id).push(row.score);
   }
 
   const entriesByMonth = new Map();
@@ -32,10 +24,13 @@ async function loadLeaderboard() {
     entriesByMonth.get(entry.month).push(entry);
   }
 
+  const perMonthRankings = await Promise.all(
+    [...entriesByMonth.entries()].map(([month, monthEntries]) => rankEntriesForMonth(month, monthEntries, points))
+  );
+
   const standings = new Map(); // normalizedName -> { displayName, totalPoints, monthsEntered }
 
-  for (const [month, monthEntries] of entriesByMonth) {
-    const ranked = rankEntries(monthEntries, scoresByEntry, points);
+  for (const { rows: ranked } of perMonthRankings) {
     for (const row of ranked) {
       const key = normalizeName(row.entry.participant_name);
       if (!standings.has(key)) {

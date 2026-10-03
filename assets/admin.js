@@ -4,6 +4,7 @@ const dashboard = document.getElementById('admin-dashboard');
 const entriesContainer = document.getElementById('entries-admin-container');
 const ballotsContainer = document.getElementById('ballots-admin-container');
 const votingControlContainer = document.getElementById('voting-control-container');
+const battleControlContainer = document.getElementById('battle-control-container');
 const settingsStatus = document.getElementById('settings-status');
 
 function setStatus(el, message, type) {
@@ -62,6 +63,8 @@ let state = {
   scoresByBallot: new Map(),
   entriesById: new Map(),
   monthLocks: new Map(),
+  battleMonths: new Map(),
+  battleCounts: new Map(),
 };
 
 // ---------------------------------------------------------------------------
@@ -104,12 +107,18 @@ async function loadAll() {
   const [{ data: entries, error: entriesError }, { data: images, error: imagesError },
     { data: ballots, error: ballotsError }, { data: scores, error: scoresError },
     { data: locks, error: locksError },
+    { data: battleMonths, error: battleMonthsError },
+    { data: battles, error: battlesError },
+    { data: battleVotes, error: battleVotesError },
     settings] = await Promise.all([
     supabaseClient.from('entries').select('*').order('month', { ascending: false }).order('created_at'),
     supabaseClient.from('entry_images').select('*').order('position'),
     supabaseClient.from('ballots').select('*').order('month', { ascending: false }).order('created_at'),
     supabaseClient.from('ballot_scores').select('*'),
     supabaseClient.from('month_locks').select('*'),
+    supabaseClient.from('battle_months').select('*'),
+    supabaseClient.from('battles').select('id, month'),
+    supabaseClient.from('battle_votes').select('id, battle_id'),
     fetchSettings(),
   ]);
   if (entriesError) throw entriesError;
@@ -117,6 +126,9 @@ async function loadAll() {
   if (ballotsError) throw ballotsError;
   if (scoresError) throw scoresError;
   if (locksError) throw locksError;
+  if (battleMonthsError) throw battleMonthsError;
+  if (battlesError) throw battlesError;
+  if (battleVotesError) throw battleVotesError;
 
   state.entries = entries;
   state.entriesById = new Map(entries.map((e) => [e.id, e]));
@@ -133,14 +145,127 @@ async function loadAll() {
   }
   state.monthLocks = new Map(locks.map((l) => [l.month, l.voting_open]));
 
+  state.battleMonths = new Map(battleMonths.map((bm) => [bm.month, bm]));
+  const battleMonthById = new Map(battles.map((b) => [b.id, b.month]));
+  state.battleCounts = new Map();
+  for (const b of battles) {
+    const counts = state.battleCounts.get(b.month) || { battles: 0, votes: 0 };
+    counts.battles++;
+    state.battleCounts.set(b.month, counts);
+  }
+  for (const v of battleVotes) {
+    const month = battleMonthById.get(v.battle_id);
+    if (!month) continue;
+    const counts = state.battleCounts.get(month) || { battles: 0, votes: 0 };
+    counts.votes++;
+    state.battleCounts.set(month, counts);
+  }
+
   for (const key of ['points_first', 'points_second', 'points_third', 'points_participation']) {
     document.getElementById(key).value = settings[key];
   }
 
   renderVotingControl();
+  renderBattleControl();
   renderEntries();
   renderBallots();
 }
+
+// ---------------------------------------------------------------------------
+// Battle Voting control
+// ---------------------------------------------------------------------------
+
+function renderBattleControl() {
+  const months = [...new Set(state.entries.map((e) => e.month))].sort().reverse();
+
+  if (months.length === 0) {
+    battleControlContainer.innerHTML = '<p class="muted">No entries yet.</p>';
+    return;
+  }
+
+  const rows = months.map((month) => {
+    const bm = state.battleMonths.get(month);
+    const counts = state.battleCounts.get(month) || { battles: 0, votes: 0 };
+    let statusLabel;
+    let actionCell;
+
+    if (!bm) {
+      statusLabel = 'Not started';
+      actionCell = `
+        <input type="text" id="theme-${month}" placeholder="Theme (optional)" style="width:140px;display:inline-block;margin-right:6px;">
+        <button data-action="start-battle" data-month="${month}">Start battle voting</button>
+      `;
+    } else if (bm.status === 'open') {
+      statusLabel = `Open · ${counts.battles} battles · ${counts.votes} votes cast`;
+      actionCell = `<button data-action="stop-battle" data-month="${month}">Stop voting</button>`;
+    } else {
+      statusLabel = `Closed (final) · ${counts.battles} battles · ${counts.votes} votes cast`;
+      actionCell = `<button data-action="reset-battle" data-month="${month}">Reset</button>`;
+    }
+
+    return `
+      <tr>
+        <td>${escapeHtml(formatMonthLabel(month))}</td>
+        <td>${statusLabel}</td>
+        <td class="admin-actions">${actionCell}</td>
+      </tr>
+    `;
+  }).join('');
+
+  battleControlContainer.innerHTML = `
+    <table>
+      <thead><tr><th>Month</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+battleControlContainer.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+  const month = button.dataset.month;
+
+  if (button.dataset.action === 'start-battle') {
+    const monthEntries = state.entries.filter((e) => e.month === month);
+    if (monthEntries.length < 2) {
+      alert('Need at least 2 entries in this month to start battle voting.');
+      return;
+    }
+    const themeInput = document.getElementById(`theme-${month}`);
+    const theme = themeInput ? themeInput.value.trim() : '';
+    const pairs = generateBattlePairings(monthEntries.map((e) => e.id), 7);
+    try {
+      const { error: bmError } = await supabaseClient
+        .from('battle_months')
+        .upsert({ month, status: 'open', theme: theme || null }, { onConflict: 'month' });
+      if (bmError) throw bmError;
+
+      const battleRows = pairs.map(([a, b]) => ({ month, entry_a_id: a, entry_b_id: b }));
+      const { error: battlesInsertError } = await supabaseClient.from('battles').insert(battleRows);
+      if (battlesInsertError) throw battlesInsertError;
+
+      await loadAll();
+    } catch (err) {
+      alert(err.message || String(err));
+    }
+  } else if (button.dataset.action === 'stop-battle') {
+    if (!confirm(`Stop battle voting for ${formatMonthLabel(month)}? This locks in the final ranking.`)) return;
+    const { error } = await supabaseClient.from('battle_months').update({ status: 'closed' }).eq('month', month);
+    if (error) { alert(error.message); return; }
+    await loadAll();
+  } else if (button.dataset.action === 'reset-battle') {
+    if (!confirm(`Reset battle voting for ${formatMonthLabel(month)}? This deletes all battles and votes for this month so you can start over.`)) return;
+    try {
+      const { error: deleteBattlesError } = await supabaseClient.from('battles').delete().eq('month', month);
+      if (deleteBattlesError) throw deleteBattlesError;
+      const { error: deleteMonthError } = await supabaseClient.from('battle_months').delete().eq('month', month);
+      if (deleteMonthError) throw deleteMonthError;
+      await loadAll();
+    } catch (err) {
+      alert(err.message || String(err));
+    }
+  }
+});
 
 // ---------------------------------------------------------------------------
 // Voting control
