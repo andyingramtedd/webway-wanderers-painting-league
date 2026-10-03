@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaderboard — Webway Wanderers Painting League</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html">Home</a>
+    <a href="submit.html">Submit Entry</a>
+    <a href="vote.html">Vote</a>
+    <a href="results.html">Results</a>
+    <a href="leaderboard.html" class="active">Leaderboard</a>
+  </nav>
+  <main>
+    <h1>Yearly leaderboard</h1>
+    <p class="muted">Points across every month so far this year: 1st/2nd/3rd place bonuses, or participation points for everyone else who entered.</p>
+    <div id="leaderboard-container"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="assets/supabase-client.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/leaderboard.js"></script>
+</body>
+</html>

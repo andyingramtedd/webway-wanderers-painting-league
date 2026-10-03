@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Results — Webway Wanderers Painting League</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html">Home</a>
+    <a href="submit.html">Submit Entry</a>
+    <a href="vote.html">Vote</a>
+    <a href="results.html" class="active">Results</a>
+    <a href="leaderboard.html">Leaderboard</a>
+  </nav>
+  <main>
+    <h1>Monthly results</h1>
+
+    <div class="card">
+      <label for="month">Month</label>
+      <select id="month"></select>
+      <p class="muted" id="no-months-message" style="display:none;">No entries found yet for any month.</p>
+    </div>
+
+    <div id="results-container"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="assets/supabase-client.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/results.js"></script>
+</body>
+</html>

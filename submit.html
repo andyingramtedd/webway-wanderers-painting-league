@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Submit Entry — Webway Wanderers Painting League</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html">Home</a>
+    <a href="submit.html" class="active">Submit Entry</a>
+    <a href="vote.html">Vote</a>
+    <a href="results.html">Results</a>
+    <a href="leaderboard.html">Leaderboard</a>
+  </nav>
+  <main>
+    <h1>Submit an entry</h1>
+    <p class="muted">One entry per model. If you're submitting more than one model in a month, submit this form again for each one.</p>
+
+    <form id="submit-form" class="card">
+      <label for="participant-name">Your name</label>
+      <input type="text" id="participant-name" required autocomplete="name">
+
+      <label for="month">Month</label>
+      <select id="month" required></select>
+
+      <label for="model-name">Model name</label>
+      <input type="text" id="model-name" required placeholder="e.g. Stormcast Lord-Celestant">
+
+      <label for="photos">Photo(s)</label>
+      <input type="file" id="photos" accept="image/*" multiple required>
+
+      <button type="submit" id="submit-button" style="margin-top: 20px;">Submit entry</button>
+      <div id="status"></div>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="assets/supabase-client.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/submit.js"></script>
+</body>
+</html>

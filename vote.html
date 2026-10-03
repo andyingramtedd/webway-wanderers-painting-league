@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vote — Webway Wanderers Painting League</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="index.html">Home</a>
+    <a href="submit.html">Submit Entry</a>
+    <a href="vote.html" class="active">Vote</a>
+    <a href="results.html">Results</a>
+    <a href="leaderboard.html">Leaderboard</a>
+  </nav>
+  <main>
+    <h1>Vote</h1>
+
+    <form id="voter-form" class="card">
+      <label for="voter-name">Your name</label>
+      <input type="text" id="voter-name" required autocomplete="name">
+
+      <label for="month">Month</label>
+      <select id="month"></select>
+      <p class="muted" id="no-months-message" style="display:none;">No entries found yet for any month.</p>
+    </form>
+
+    <div id="entries-container"></div>
+
+    <div class="card" id="submit-card" style="display:none;">
+      <button type="button" id="submit-scores-button">Submit my scores</button>
+      <div id="status"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="assets/supabase-client.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/vote.js"></script>
+</body>
+</html>
