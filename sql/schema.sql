@@ -57,6 +57,13 @@ insert into settings (key, value) values
   ('points_third', 5),
   ('points_participation', 2);
 
+-- One row per month that voting has been opened for. No row (or
+-- voting_open = false) means voting is locked for that month.
+create table month_locks (
+  month text primary key,
+  voting_open boolean not null default false
+);
+
 -- ---------------------------------------------------------------------------
 -- Row Level Security
 -- ---------------------------------------------------------------------------
@@ -66,6 +73,7 @@ alter table entry_images enable row level security;
 alter table ballots enable row level security;
 alter table ballot_scores enable row level security;
 alter table settings enable row level security;
+alter table month_locks enable row level security;
 
 -- entries: anyone can submit and read; only the logged-in admin can edit/delete
 create policy "entries_public_select" on entries for select using (true);
@@ -79,9 +87,12 @@ create policy "entry_images_public_insert" on entry_images for insert with check
 create policy "entry_images_admin_update" on entry_images for update using (auth.role() = 'authenticated');
 create policy "entry_images_admin_delete" on entry_images for delete using (auth.role() = 'authenticated');
 
--- ballots: anyone can vote and read; only admin can edit/delete
+-- ballots: anyone can read; insert is only allowed while voting is open for
+-- that month (see month_locks below); only admin can edit/delete
 create policy "ballots_public_select" on ballots for select using (true);
-create policy "ballots_public_insert" on ballots for insert with check (true);
+create policy "ballots_public_insert" on ballots for insert with check (
+  exists (select 1 from month_locks ml where ml.month = ballots.month and ml.voting_open = true)
+);
 create policy "ballots_admin_update" on ballots for update using (auth.role() = 'authenticated');
 create policy "ballots_admin_delete" on ballots for delete using (auth.role() = 'authenticated');
 
@@ -96,6 +107,12 @@ create policy "settings_public_select" on settings for select using (true);
 create policy "settings_admin_insert" on settings for insert with check (auth.role() = 'authenticated');
 create policy "settings_admin_update" on settings for update using (auth.role() = 'authenticated');
 create policy "settings_admin_delete" on settings for delete using (auth.role() = 'authenticated');
+
+-- month_locks: anyone can read (so the vote page can check); only admin can open/close voting
+create policy "month_locks_public_select" on month_locks for select using (true);
+create policy "month_locks_admin_insert" on month_locks for insert with check (auth.role() = 'authenticated');
+create policy "month_locks_admin_update" on month_locks for update using (auth.role() = 'authenticated');
+create policy "month_locks_admin_delete" on month_locks for delete using (auth.role() = 'authenticated');
 
 -- ---------------------------------------------------------------------------
 -- Storage bucket for entry photos

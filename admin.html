@@ -8,11 +8,14 @@
 </head>
 <body>
   <nav class="site-nav">
-    <a href="index.html">Home</a>
-    <a href="submit.html">Submit Entry</a>
-    <a href="vote.html">Vote</a>
-    <a href="results.html">Results</a>
-    <a href="leaderboard.html">Leaderboard</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="submit.html">Submit Entry</a>
+      <a href="vote.html">Vote</a>
+      <a href="results.html">Results</a>
+      <a href="leaderboard.html">Leaderboard</a>
+    </div>
+    <a href="admin.html" class="hamburger active" aria-label="Admin login" title="Admin login">&#9776;</a>
   </nav>
   <main>
     <h1>Admin</h1>
@@ -43,6 +46,12 @@
         <input type="text" inputmode="numeric" id="points_participation">
         <button type="button" id="save-settings-button" style="margin-top:20px;">Save points settings</button>
         <div id="settings-status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Voting control</h2>
+        <p class="muted">Open voting for a month once all entries are in. While locked, the vote page shows entries but hides the scoring buttons.</p>
+        <div id="voting-control-container"></div>
       </div>
 
       <div class="card">

@@ -3,6 +3,7 @@ const loginStatus = document.getElementById('login-status');
 const dashboard = document.getElementById('admin-dashboard');
 const entriesContainer = document.getElementById('entries-admin-container');
 const ballotsContainer = document.getElementById('ballots-admin-container');
+const votingControlContainer = document.getElementById('voting-control-container');
 const settingsStatus = document.getElementById('settings-status');
 
 function setStatus(el, message, type) {
@@ -60,6 +61,7 @@ let state = {
   ballots: [],
   scoresByBallot: new Map(),
   entriesById: new Map(),
+  monthLocks: new Map(),
 };
 
 // ---------------------------------------------------------------------------
@@ -101,17 +103,20 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 async function loadAll() {
   const [{ data: entries, error: entriesError }, { data: images, error: imagesError },
     { data: ballots, error: ballotsError }, { data: scores, error: scoresError },
+    { data: locks, error: locksError },
     settings] = await Promise.all([
     supabaseClient.from('entries').select('*').order('month', { ascending: false }).order('created_at'),
     supabaseClient.from('entry_images').select('*').order('position'),
     supabaseClient.from('ballots').select('*').order('month', { ascending: false }).order('created_at'),
     supabaseClient.from('ballot_scores').select('*'),
+    supabaseClient.from('month_locks').select('*'),
     fetchSettings(),
   ]);
   if (entriesError) throw entriesError;
   if (imagesError) throw imagesError;
   if (ballotsError) throw ballotsError;
   if (scoresError) throw scoresError;
+  if (locksError) throw locksError;
 
   state.entries = entries;
   state.entriesById = new Map(entries.map((e) => [e.id, e]));
@@ -126,14 +131,63 @@ async function loadAll() {
     if (!state.scoresByBallot.has(s.ballot_id)) state.scoresByBallot.set(s.ballot_id, []);
     state.scoresByBallot.get(s.ballot_id).push(s);
   }
+  state.monthLocks = new Map(locks.map((l) => [l.month, l.voting_open]));
 
   for (const key of ['points_first', 'points_second', 'points_third', 'points_participation']) {
     document.getElementById(key).value = settings[key];
   }
 
+  renderVotingControl();
   renderEntries();
   renderBallots();
 }
+
+// ---------------------------------------------------------------------------
+// Voting control
+// ---------------------------------------------------------------------------
+
+function renderVotingControl() {
+  const months = [...new Set(state.entries.map((e) => e.month))].sort().reverse();
+
+  if (months.length === 0) {
+    votingControlContainer.innerHTML = '<p class="muted">No entries yet.</p>';
+    return;
+  }
+
+  const rows = months.map((month) => {
+    const open = state.monthLocks.get(month) || false;
+    return `
+      <tr>
+        <td>${escapeHtml(formatMonthLabel(month))}</td>
+        <td>${open ? 'Open' : 'Locked'}</td>
+        <td class="admin-actions">
+          <button data-action="toggle-voting" data-month="${month}" data-open="${open}">
+            ${open ? 'Lock voting' : 'Open voting'}
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  votingControlContainer.innerHTML = `
+    <table>
+      <thead><tr><th>Month</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+votingControlContainer.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action="toggle-voting"]');
+  if (!button) return;
+  const month = button.dataset.month;
+  const nextOpen = button.dataset.open !== 'true';
+  const { error } = await supabaseClient
+    .from('month_locks')
+    .upsert({ month, voting_open: nextOpen }, { onConflict: 'month' });
+  if (error) { alert(error.message); return; }
+  await loadAll();
+});
 
 // ---------------------------------------------------------------------------
 // Settings

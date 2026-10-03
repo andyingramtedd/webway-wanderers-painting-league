@@ -8,34 +8,46 @@
 </head>
 <body>
   <nav class="site-nav">
-    <a href="index.html" class="active">Home</a>
-    <a href="submit.html">Submit Entry</a>
-    <a href="vote.html">Vote</a>
-    <a href="results.html">Results</a>
-    <a href="leaderboard.html">Leaderboard</a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="submit.html">Submit Entry</a>
+      <a href="vote.html">Vote</a>
+      <a href="results.html">Results</a>
+      <a href="leaderboard.html">Leaderboard</a>
+    </div>
+    <a href="admin.html" class="hamburger" aria-label="Admin login" title="Admin login">&#9776;</a>
   </nav>
   <main>
-    <h1>🎨 Webway Wanderers Painting League</h1>
-    <p class="muted">Submit your model, vote on everyone else's, and see who's topping the yearly leaderboard.</p>
+    <img src="assets/logo.png" alt="Webway Wanderers Warhammer Group" class="site-logo" onerror="this.style.display='none'">
+    <p class="muted" style="text-align:center;">A monthly painting competition for the group — submit what you've painted, vote on everyone else's, and climb the yearly leaderboard.</p>
 
     <div class="card">
-      <h2>Submit an entry</h2>
-      <p>Got a model finished for this month? Enter your name, the month, your model's name, and one or more photos.</p>
-      <a class="button" href="submit.html">Submit entry</a>
+      <h2>How it works</h2>
+      <ul class="rules-list">
+        <li>Each month, submit a model you've painted via <a href="submit.html">Submit Entry</a> — your name, the month, your model's name, and at least one photo.</li>
+        <li>Once every entry is in for the month, the organiser opens voting. Head to <a href="vote.html">Vote</a>, register your name, and score every entry from 1 to 5.</li>
+        <li>You can only see and browse entries while voting is locked — scoring unlocks once the organiser opens the month.</li>
+        <li>You can only submit your scores once per month. If you need a correction, ask the organiser.</li>
+        <li>Check <a href="results.html">Results</a> for how a given month shook out, and the <a href="leaderboard.html">Leaderboard</a> for the running yearly standings.</li>
+      </ul>
     </div>
 
     <div class="card">
-      <h2>Vote</h2>
-      <p>Once entries are in for the month, register your name and score every model from 1 to 5.</p>
-      <a class="button" href="vote.html">Vote now</a>
-    </div>
-
-    <div class="card">
-      <h2>Results & Leaderboard</h2>
-      <p>See how a given month shook out, or check the running yearly standings.</p>
-      <a class="button secondary" href="results.html">Monthly results</a>
-      <a class="button secondary" href="leaderboard.html">Yearly leaderboard</a>
+      <h2>Scoring</h2>
+      <p>Each month, entries are ranked by their average score across every vote cast. Points for that month:</p>
+      <table class="points-table">
+        <thead><tr><th>Placement</th><th>Points</th></tr></thead>
+        <tbody id="points-table-body">
+          <tr><td>Loading…</td><td></td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top:10px;">Points aren't stacked — 1st place gets the 1st-place points only, not 1st-place-plus-participation. Points add up across every month of the year for the yearly leaderboard.</p>
     </div>
   </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="assets/supabase-client.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/index.js"></script>
 </body>
 </html>

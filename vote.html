@@ -8,11 +8,14 @@
 </head>
 <body>
   <nav class="site-nav">
-    <a href="index.html">Home</a>
-    <a href="submit.html">Submit Entry</a>
-    <a href="vote.html" class="active">Vote</a>
-    <a href="results.html">Results</a>
-    <a href="leaderboard.html">Leaderboard</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="submit.html">Submit Entry</a>
+      <a href="vote.html" class="active">Vote</a>
+      <a href="results.html">Results</a>
+      <a href="leaderboard.html">Leaderboard</a>
+    </div>
+    <a href="admin.html" class="hamburger" aria-label="Admin login" title="Admin login">&#9776;</a>
   </nav>
   <main>
     <h1>Vote</h1>
@@ -25,6 +28,8 @@
       <select id="month"></select>
       <p class="muted" id="no-months-message" style="display:none;">No entries found yet for any month.</p>
     </form>
+
+    <div id="lock-notice" class="status info" style="display:none;"></div>
 
     <div id="entries-container"></div>
 

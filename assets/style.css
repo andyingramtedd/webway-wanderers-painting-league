@@ -1,28 +1,16 @@
 :root {
-  --bg: #f7f5f2;
-  --surface: #ffffff;
-  --text: #1c1b1a;
-  --muted: #6b6560;
-  --border: #e2ddd6;
-  --accent: #8b1e1e;
-  --accent-text: #ffffff;
-  --gold: #c9972c;
-  --silver: #8a8f98;
-  --bronze: #a8632e;
-  --danger: #b3261e;
+  --bg: #0a1e22;
+  --surface: #11292d;
+  --text: #eaf6f6;
+  --muted: #93b2b3;
+  --border: #1f4347;
+  --accent: #3ecbd6;
+  --accent-text: #052226;
+  --gold: #e8c158;
+  --silver: #b9c4c6;
+  --bronze: #c58a4a;
+  --danger: #ff8a80;
   --radius: 10px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17120f;
-    --surface: #221c18;
-    --text: #f1ece6;
-    --muted: #b0a79e;
-    --border: #3a322b;
-    --accent: #d3453f;
-    --accent-text: #1c1310;
-  }
 }
 
 * { box-sizing: border-box; }
@@ -48,11 +36,19 @@ a { color: var(--accent); }
 
 nav.site-nav {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
   max-width: 720px;
   margin: 0 auto;
   padding-top: 16px;
+}
+
+nav.site-nav .nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
 }
 
 nav.site-nav a {
@@ -69,6 +65,12 @@ nav.site-nav a.active {
   background: var(--accent);
   color: var(--accent-text);
   border-color: var(--accent);
+}
+
+nav.site-nav a.hamburger {
+  padding: 6px 12px;
+  font-size: 1.1rem;
+  line-height: 1.2;
 }
 
 .card {
@@ -133,9 +135,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   font-size: 0.95rem;
 }
 
-.status.success { background: #1c7c3c22; color: #1c7c3c; }
-.status.error { background: #b3261e22; color: var(--danger); }
-.status.info { background: #3a68c922; color: #3a68c9; }
+.status.success { background: #2fa66b2e; color: #7fe3b4; }
+.status.error { background: #ff8a8022; color: var(--danger); }
+.status.info { background: #3ecbd622; color: #7fdfe6; }
 
 .muted { color: var(--muted); font-size: 0.9rem; }
 
@@ -269,3 +271,20 @@ tr:last-child td { border-bottom: none; }
 
 .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .admin-actions button { padding: 6px 10px; font-size: 0.85rem; }
+
+.site-logo {
+  display: block;
+  max-width: 260px;
+  margin: 8px auto 24px;
+}
+
+.rules-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.rules-list li { margin-bottom: 8px; }
+
+.points-table {
+  margin-top: 12px;
+}

@@ -38,6 +38,16 @@ function getPhotoUrl(storagePath) {
   return supabaseClient.storage.from(PHOTO_BUCKET).getPublicUrl(storagePath).data.publicUrl;
 }
 
+async function isVotingOpen(month) {
+  const { data, error } = await supabaseClient
+    .from('month_locks')
+    .select('voting_open')
+    .eq('month', month)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? data.voting_open : false;
+}
+
 async function fetchSettings() {
   const { data, error } = await supabaseClient.from('settings').select('key, value');
   if (error) throw error;

@@ -2,6 +2,7 @@ const monthSelect = document.getElementById('month');
 const entriesContainer = document.getElementById('entries-container');
 const submitCard = document.getElementById('submit-card');
 const noMonthsMessage = document.getElementById('no-months-message');
+const lockNotice = document.getElementById('lock-notice');
 const statusEl = document.getElementById('status');
 
 let currentEntries = [];
@@ -11,7 +12,7 @@ function setStatus(message, type) {
   statusEl.className = type ? `status ${type}` : '';
 }
 
-function renderEntryCard(entry, images) {
+function renderEntryCard(entry, images, votingOpen) {
   const galleryImgs = images.length
     ? images.map((img) => `<img src="${escapeHtml(getPhotoUrl(img.storage_path))}" alt="${escapeHtml(entry.model_name)}">`).join('')
     : '<p class="muted" style="padding:16px;">No photo uploaded.</p>';
@@ -20,10 +21,12 @@ function renderEntryCard(entry, images) {
     ? `<div class="gallery-dots">${images.map(() => '<span></span>').join('')}</div>`
     : '';
 
-  const scoreButtons = [1, 2, 3, 4, 5].map((n) => `
-    <input type="radio" name="score-${entry.id}" id="score-${entry.id}-${n}" value="${n}">
-    <label for="score-${entry.id}-${n}">${n}</label>
-  `).join('');
+  const scoreToggle = votingOpen ? `
+    <div class="score-toggle">${[1, 2, 3, 4, 5].map((n) => `
+      <input type="radio" name="score-${entry.id}" id="score-${entry.id}-${n}" value="${n}">
+      <label for="score-${entry.id}-${n}">${n}</label>
+    `).join('')}</div>
+  ` : '';
 
   return `
     <div class="card" data-entry-id="${entry.id}">
@@ -33,7 +36,7 @@ function renderEntryCard(entry, images) {
       </div>
       <div class="gallery">${galleryImgs}</div>
       ${dots}
-      <div class="score-toggle">${scoreButtons}</div>
+      ${scoreToggle}
     </div>
   `;
 }
@@ -71,19 +74,27 @@ async function loadMonths() {
   await loadEntries(months[0]);
 }
 
+let votingOpenForMonth = false;
+
 async function loadEntries(month) {
   entriesContainer.innerHTML = '<p class="muted">Loading entries…</p>';
   submitCard.style.display = 'none';
+  lockNotice.style.display = 'none';
   setStatus('', '');
 
-  const { data: entries, error: entriesError } = await supabaseClient
-    .from('entries')
-    .select('id, participant_name, model_name, month')
-    .eq('month', month)
-    .order('created_at');
+  const [{ data: entries, error: entriesError }, votingOpen] = await Promise.all([
+    supabaseClient.from('entries').select('id, participant_name, model_name, month').eq('month', month).order('created_at'),
+    isVotingOpen(month),
+  ]);
   if (entriesError) throw entriesError;
 
   currentEntries = entries;
+  votingOpenForMonth = votingOpen;
+
+  if (!votingOpen) {
+    lockNotice.textContent = `Voting is locked for ${formatMonthLabel(month)} until all entries have been submitted and the organiser opens voting. You can still look through this month's entries below.`;
+    lockNotice.style.display = 'block';
+  }
 
   if (entries.length === 0) {
     entriesContainer.innerHTML = '<p class="muted">No entries for this month yet.</p>';
@@ -105,11 +116,11 @@ async function loadEntries(month) {
   }
 
   entriesContainer.innerHTML = entries
-    .map((entry) => renderEntryCard(entry, imagesByEntry.get(entry.id) || []))
+    .map((entry) => renderEntryCard(entry, imagesByEntry.get(entry.id) || [], votingOpen))
     .join('');
 
   wireGalleryDots();
-  submitCard.style.display = 'block';
+  submitCard.style.display = votingOpen ? 'block' : 'none';
 }
 
 monthSelect.addEventListener('change', () => loadEntries(monthSelect.value));
@@ -121,6 +132,11 @@ document.getElementById('submit-scores-button').addEventListener('click', async 
 
   if (!voterName) {
     setStatus('Please enter your name before submitting.', 'error');
+    return;
+  }
+
+  if (!votingOpenForMonth) {
+    setStatus('Voting is not open for this month yet.', 'error');
     return;
   }
 
