@@ -272,10 +272,19 @@ tr:last-child td { border-bottom: none; }
 .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .admin-actions button { padding: 6px 10px; font-size: 0.85rem; }
 
+.logo-badge {
+  width: fit-content;
+  margin: 8px auto 24px;
+  padding: 14px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px #00000040;
+}
+
 .site-logo {
   display: block;
-  max-width: 260px;
-  margin: 8px auto 24px;
+  max-width: 220px;
+  width: 100%;
 }
 
 .rules-list {
